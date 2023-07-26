@@ -4,47 +4,40 @@ const recordWrapper = document.querySelector('#record-wrapper');
 const stopButton = document.querySelector('#stop');
 const stopWrapper = document.querySelector('#stop-wrapper');
 const submitButton = document.querySelector('#submit');
-const submitConfirmButton = document.querySelector('#confirm-submit');
-const modal = document.querySelector('#modal');
+
 
 const recordAudio = () =>
     new Promise(async resolve => {
-      const stream = await navigator.mediaDevices.getUserMedia(
-        { audio: { sampleSize: 16, channelCount: 1, sampleRate: 24000 } }
-      );
-      const mediaRecorder = new MediaRecorder(stream);
-      let audioChunks = [];
+        const stream = await navigator.mediaDevices.getUserMedia(
+            {audio: {sampleSize: 16, channelCount: 1, sampleRate: 24000}}
+        );
+        const mediaRecorder = new MediaRecorder(stream);
+        let audioChunks = [];
 
-      mediaRecorder.addEventListener('dataavailable', event => {
-        audioChunks.push(event.data);
-      });
-
-      const start = () => {
-        audioChunks = [];
-        mediaRecorder.start();
-      };
-
-      const stop = () =>
-        new Promise(resolve => {
-          mediaRecorder.addEventListener('stop', () => {
-            const audioBlob = new Blob(audioChunks,{ 'type' : 'audio/mp3; codecs=opus' });
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioUrl);
-            resolve({ audioChunks, audioBlob, audioUrl });
-
-            resultAudio.src = audioUrl
-          });
-
-          mediaRecorder.stop();
+        mediaRecorder.addEventListener('dataavailable', event => {
+            audioChunks.push(event.data);
         });
 
-      resolve({ start, stop });
-});
+        const start = () => {
+            audioChunks = [];
+            mediaRecorder.start();
+        };
 
-const sleep = time => new Promise(resolve => setTimeout(resolve, time));
+        const stop = () =>
+            new Promise(resolve => {
+                mediaRecorder.addEventListener('stop', () => {
+                    const audioBlob = new Blob(audioChunks, {'type': 'audio/mp3; codecs=opus'});
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    resolve({audioChunks, audioBlob, audioUrl});
 
+                    resultAudio.src = audioUrl
+                });
 
-const submitdAudioMessagesContainer = document.querySelector('#submitd-audio-messages');
+                mediaRecorder.stop();
+            });
+
+        resolve({start, stop});
+    });
 
 let recorder;
 let audio;
@@ -54,12 +47,12 @@ recordButton.addEventListener('click', async () => {
     recordWrapper.classList.add('uk-hidden');
     stopButton.classList.remove('uk-hidden');
     stopWrapper.classList.remove('uk-hidden');
-    submitButton.setAttribute('disabled', true);
+    submitButton.disabled = true;
     if (!recorder) {
-      recorder = await recordAudio();
+        recorder = await recordAudio();
     }
     recorder.start();
-    resultAudio.src='';
+    resultAudio.src = '';
 });
 
 stopButton.addEventListener('click', async () => {
@@ -67,58 +60,32 @@ stopButton.addEventListener('click', async () => {
     recordWrapper.classList.remove('uk-hidden');
     stopButton.classList.add('uk-hidden');
     stopWrapper.classList.add('uk-hidden');
-    submitButton.removeAttribute('disabled');
+    submitButton.disabled = false;
     audio = await recorder.stop();
 });
 
-submitButton.addEventListener('click', (e) => {
-    title.value=''
-    UIkit.modal(modal).show();
-});
-
-submitConfirmButton.addEventListener('click', (e) => {
+submitButton.addEventListener('click', () => {
     submit();
 });
 
 
-function submit(){
-
+const submit = () => {
     const reader = new FileReader();
-    const title = document.querySelector('#title').value;
+    reader.readAsDataURL(audio.audioBlob);
 
-    if (!title) {
-        UIkit.notification({
-                message: 'Please provide a title',
-                status: 'warning',
-                pos: 'bottom-center',
-                timeout: 5000
-            });
+    reader.onload = () => {
+        const base64AudioMessage = reader.result.split(',')[1];
 
-    }else{
-
-        reader.readAsDataURL(audio.audioBlob);
-        reader.onload = () => {
-          const base64AudioMessage = reader.result.split(',')[1];
-
-          fetch('/save/', {
+        fetch('/save/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json','X-CSRFToken':csrf },
-            body: JSON.stringify({ audio: base64AudioMessage,title:title })
-          }).then(res => {
-            if (res.status==200){
-                UIkit.notification({
-                    message: 'Successfully submitted your audio ',
-                    status: 'primary',
-                    pos: 'bottom-center',
-                    timeout: 5000
-                });
-                UIkit.modal(modal).hide();
-                submitButton.setAttribute('disabled', true);
-                resultAudio.src='';
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf},
+            body: JSON.stringify({audio: base64AudioMessage})
+        }).then(res => {
+            if (res.status === 200) {
+                console.log('Successfully sent!')
             }
-          });
-        };
-    }
+        });
+    };
 }
 
 
