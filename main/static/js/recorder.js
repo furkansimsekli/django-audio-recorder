@@ -1,8 +1,6 @@
 const resultAudio = document.querySelector('#result');
 const recordButton = document.querySelector('#record');
-const recordWrapper = document.querySelector('#record-wrapper');
 const stopButton = document.querySelector('#stop');
-const stopWrapper = document.querySelector('#stop-wrapper');
 const submitButton = document.querySelector('#submit');
 
 let recorder;
@@ -10,11 +8,8 @@ let audio;
 
 
 recordButton.addEventListener('click', async () => {
-    recordButton.classList.add('invisible');
-    recordWrapper.classList.add('invisible');
-    stopButton.classList.remove('invisible');
-    stopWrapper.classList.remove('invisible');
-    submitButton.disabled = true;
+    recordButton.disabled = true;
+    stopButton.disabled = false;
 
     if (!recorder) {
         recorder = await recordAudio();
@@ -25,16 +20,15 @@ recordButton.addEventListener('click', async () => {
 });
 
 stopButton.addEventListener('click', async () => {
-    recordButton.classList.remove('invisible');
-    recordWrapper.classList.remove('invisible');
-    stopButton.classList.add('invisible');
-    stopWrapper.classList.add('invisible');
+    recordButton.disabled = false
+    stopButton.disabled = true
     submitButton.disabled = false;
     audio = await recorder.stop();
 });
 
 submitButton.addEventListener('click', () => {
     submit();
+    submitButton.disabled = true
 });
 
 const recordAudio = () => new Promise(async resolve => {
@@ -71,15 +65,18 @@ const submit = () => {
     reader.readAsDataURL(audio.audioBlob);
 
     reader.onload = () => {
+        const audioType = reader.result.split(';')[0].split('/')[1];
         const base64AudioMessage = reader.result.split(',')[1];
 
         fetch('/save/', {
             method: 'POST',
             headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrf},
-            body: JSON.stringify({audio: base64AudioMessage})
+            body: JSON.stringify({audio: base64AudioMessage, audioType: audioType})
         }).then(res => {
             if (res.status === 200) {
                 alert('Successfully sent!')
+            } else {
+                alert('Something went wrong!')
             }
         });
     };
