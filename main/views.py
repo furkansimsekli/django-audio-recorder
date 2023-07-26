@@ -1,6 +1,7 @@
 import base64
-import uuid
 import json
+import uuid
+
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -10,11 +11,13 @@ def index(request):
 
 
 def save_audio(request):
-    data_str = request.body.decode('ascii')
-    data = json.loads(data_str)
-    audio = data['audio']
+    data = json.loads(request.body.decode('ascii'))  # Skipping decoding still works, it even creates smaller file
+    audio = data['audio']                            # Yet, I don't know why the original author decided to decode.
+    audio_type = data['audioType']
     title = f'record_{str(uuid.uuid4())[:8]}'
-    wav_file = open(f'records/{title}.mp3', 'wb')
-    decode_string = base64.b64decode(audio)
-    wav_file.write(decode_string)
-    return HttpResponse('Saved')
+
+    with open(f'records/{title}.{audio_type}', 'wb') as f:
+        decode_string = base64.b64decode(audio)
+        f.write(decode_string)
+
+    return HttpResponse()
