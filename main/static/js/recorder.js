@@ -5,61 +5,30 @@ const stopButton = document.querySelector('#stop');
 const stopWrapper = document.querySelector('#stop-wrapper');
 const submitButton = document.querySelector('#submit');
 
-
-const recordAudio = () =>
-    new Promise(async resolve => {
-        const stream = await navigator.mediaDevices.getUserMedia(
-            {audio: {sampleSize: 16, channelCount: 1, sampleRate: 24000}}
-        );
-        const mediaRecorder = new MediaRecorder(stream);
-        let audioChunks = [];
-
-        mediaRecorder.addEventListener('dataavailable', event => {
-            audioChunks.push(event.data);
-        });
-
-        const start = () => {
-            audioChunks = [];
-            mediaRecorder.start();
-        };
-
-        const stop = () =>
-            new Promise(resolve => {
-                mediaRecorder.addEventListener('stop', () => {
-                    const audioBlob = new Blob(audioChunks, {'type': 'audio/mp3; codecs=opus'});
-                    const audioUrl = URL.createObjectURL(audioBlob);
-                    resolve({audioChunks, audioBlob, audioUrl});
-
-                    resultAudio.src = audioUrl
-                });
-
-                mediaRecorder.stop();
-            });
-
-        resolve({start, stop});
-    });
-
 let recorder;
 let audio;
 
+
 recordButton.addEventListener('click', async () => {
-    recordButton.classList.add('uk-hidden');
-    recordWrapper.classList.add('uk-hidden');
-    stopButton.classList.remove('uk-hidden');
-    stopWrapper.classList.remove('uk-hidden');
+    recordButton.classList.add('invisible');
+    recordWrapper.classList.add('invisible');
+    stopButton.classList.remove('invisible');
+    stopWrapper.classList.remove('invisible');
     submitButton.disabled = true;
+
     if (!recorder) {
         recorder = await recordAudio();
     }
+
     recorder.start();
     resultAudio.src = '';
 });
 
 stopButton.addEventListener('click', async () => {
-    recordButton.classList.remove('uk-hidden');
-    recordWrapper.classList.remove('uk-hidden');
-    stopButton.classList.add('uk-hidden');
-    stopWrapper.classList.add('uk-hidden');
+    recordButton.classList.remove('invisible');
+    recordWrapper.classList.remove('invisible');
+    stopButton.classList.add('invisible');
+    stopWrapper.classList.add('invisible');
     submitButton.disabled = false;
     audio = await recorder.stop();
 });
@@ -68,6 +37,34 @@ submitButton.addEventListener('click', () => {
     submit();
 });
 
+const recordAudio = () => new Promise(async resolve => {
+    const stream = await navigator.mediaDevices.getUserMedia(
+        {audio: {sampleSize: 16, channelCount: 1, sampleRate: 24000}}
+    );
+    const mediaRecorder = new MediaRecorder(stream);
+    let audioChunks = [];
+
+    mediaRecorder.addEventListener('dataavailable', event => {
+        audioChunks.push(event.data);
+    });
+
+    const start = () => {
+        audioChunks = [];
+        mediaRecorder.start();
+    };
+
+    const stop = () => new Promise(resolve => {
+        mediaRecorder.addEventListener('stop', () => {
+            const audioBlob = new Blob(audioChunks, {'type': 'audio/mp3; codecs=opus'});
+            const audioUrl = URL.createObjectURL(audioBlob);
+            resolve({audioChunks, audioBlob, audioUrl});
+            resultAudio.src = audioUrl
+        });
+        mediaRecorder.stop();
+    });
+
+    resolve({start, stop});
+});
 
 const submit = () => {
     const reader = new FileReader();
@@ -82,7 +79,7 @@ const submit = () => {
             body: JSON.stringify({audio: base64AudioMessage})
         }).then(res => {
             if (res.status === 200) {
-                console.log('Successfully sent!')
+                alert('Successfully sent!')
             }
         });
     };

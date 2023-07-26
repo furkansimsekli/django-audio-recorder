@@ -1,96 +1,59 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <title>Audio Recorder</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <!-- UIkit CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.7.2/dist/css/uikit.min.css"/>
 
-    <!-- UIkit JS -->
-    <script src="https://cdn.jsdelivr.net/npm/uikit@3.7.2/dist/js/uikit.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/uikit@3.7.2/dist/js/uikit-icons.min.js"></script>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
     <style>
-        html,body{
-            height:100%;
+        html, body {
+            height: 100%;
         }
 
-
-
-
-        .border{
-                border: 1px solid #dedede;
+        .border {
+            border: 1px solid #dedede;
         }
-
-
-
-
     </style>
 </head>
 <body>
 
-<div class="uk-container uk-container-medium uk-height-expand uk-height-1-1">
-    <div class="uk-flex uk-flex-middle uk-flex-center uk-height-1-1">
+<div class="container-md d-flex h-100 justify-content-center">
+    <div class="align-self-center">
         <div>
-            <div>
-                <h3 class="uk-text-center uk-text-primary">AUDIO RECORDER</h3>
-                <hr>
-                <ul class="uk-list uk-list-square">
-                    <li>Press the record button to start recording.</li>
-                    <li>The browser may ask you for the permission to record.</li>
-                    <li>After you finish recording, press stop button.</li>
-                    <li>After finalizing the audio, press <b>SUBMIT</b> button</li>
-                    <li>Upon clicking the submit button, a popup will be displayed to type in the title (file name) of the audio.
-                        Your recording will be saved in the project's root directory.
-                    </li>
-                    <li class="uk-text-warning">Known issues: Playback issue in Safari browser</li>
-                </ul>
-            </div>
-            <div class="border uk-padding-small uk-grid-row-small uk-grid uk-child-width-1-2@m uk-margin-remove">
-                <div class="uk-flex uk-flex-center uk-flex-middle">
-                    <div class="uk-text-center">
-                        <div id="record-wrapper">
-                            <a id="record" uk-tooltip="Record the audio" type="button"
-                               class="uk-button uk-button-primary">Record
-                            </a>
-                        </div>
-                        <div id="stop-wrapper" class="uk-hidden">
-                            <a class="uk-hidden uk-button uk-button-danger" uk-tooltip="Stop recording the audio"
-                               id="stop" type="button">Stop
-                            </a>
-                        </div>
+            <h3 class="text-center text-primary">AUDIO RECORDER</h3>
+            <hr>
+        </div>
+        <div class="p-2 row">
+            <div class="col-md-6 d-flex justify-content-center align-items-center">
+                <div class="text-center">
+                    <div id="record-wrapper">
+                        <a id="record" type="button" class="btn btn-primary">Record</a>
                     </div>
-                </div>
-                <div class="uk-grid-margin">
-                    <div id="result-wrapper" class="uk-margin uk-text-center uk-animation-scale-up">
-                        <audio id="result" controls controlsList="nodownload">
-                            Your browser does not support the audio element.
-                        </audio>
+                    <div id="stop-wrapper" class="invisible">
+                        <a id="stop" type="button" class="btn btn-danger invisible">Stop</a>
                     </div>
                 </div>
             </div>
-            <div class="uk-margin-top uk-text-center uk-margin-bottom">
-                <button id="submit" disabled class="uk-button uk-button-secondary audio uk-border-pill">submit</button>
+            <div class="col-md-6 mt-md-0 mt-2">
+                <div id="result-wrapper" class="mt-md-0 mt-2 text-center">
+                    <audio id="result" controls>
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
             </div>
         </div>
-    </div>
-</div>
-
-<!-- This is the modal with the default close button -->
-<div id="modal" uk-modal>
-    <div class="uk-modal-dialog uk-modal-body">
-        <button class="uk-modal-close-default" type="button" uk-close></button>
-        <h2 class="uk-modal-title">Submit your audio</h2>
-        <input class="uk-input uk-border-pill" placeholder="Enter the title" id="title">
-        <div class="uk-text-center uk-margin-top">
-            <button id="confirm-submit" class="uk-button uk-button-primary uk-border-pill">Confirm and submit</button>
+        <div class="mt-3 text-center mb-4">
+            <button id="submit" disabled class="btn btn-secondary audio rounded-pill">Submit</button>
         </div>
     </div>
 </div>
 
 </body>
-<script>var csrf='{{csrf_token}}';</script>
+<script>const csrf = '{{csrf_token}}';</script>
 <script src="{% static 'js/recorder.js' %}"></script>
-
 </html>
